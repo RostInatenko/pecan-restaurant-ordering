@@ -1,0 +1,26 @@
+{
+  "name": "pecan-restaurant-ordering",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Real-time restaurant ordering prototype: Angular 21 + NgRx client, NestJS server",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "start": "concurrently -k -n server,client -c blue,magenta \"npm:start:server\" \"npm:start:client\"",
+    "start:server": "npm run start:dev -w server",
+    "start:client": "npm start -w client",
+    "build": "npm run build -w server && npm run build -w client",
+    "test": "npm test -w server && npm test -w client",
+    "lint": "npm run lint -w server && npm run lint -w client",
+    "format": "prettier --write \"{client,server,shared}/**/*.{ts,html,scss,json}\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+  }
+}
