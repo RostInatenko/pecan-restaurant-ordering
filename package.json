@@ -13,7 +13,7 @@
     "start:client": "npm start -w client",
     "build": "npm run build -w server && npm run build -w client",
     "test": "npm test -w server && npm test -w client",
-    "lint": "npm run lint -w server && npm run lint -w client",
+    "lint": "tsc -p shared && npm run lint -w server && npm run lint -w client",
     "format": "prettier --write \"{client,server,shared}/**/*.{ts,html,scss,json}\""
   },
   "devDependencies": {
