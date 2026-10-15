@@ -1,11 +1,7 @@
 import type { Cents } from './money.js';
 
 export type ApiErrorCode =
-  | 'VALIDATION'
-  | 'NOT_FOUND'
-  | 'STALE_CART'
-  | 'IDEMPOTENCY_CONFLICT'
-  | 'INTERNAL';
+  'VALIDATION' | 'NOT_FOUND' | 'STALE_CART' | 'IDEMPOTENCY_CONFLICT' | 'INTERNAL';
 
 /** Body of every non-2xx response. */
 export interface ApiErrorBody {

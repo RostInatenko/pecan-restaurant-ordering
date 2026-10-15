@@ -4,7 +4,6 @@ export interface Category {
   id: string;
   name: string;
   sortOrder: number;
-  rev: number;
 }
 
 export interface MenuItem {
@@ -16,7 +15,6 @@ export interface MenuItem {
   price: Cents | null;
   openPrice: boolean;
   available: boolean;
-  rev: number;
 }
 
 export interface MenuSnapshot {
@@ -24,6 +22,6 @@ export interface MenuSnapshot {
   items: MenuItem[];
 }
 
-export type CategoryInput = Pick<Category, 'name' | 'sortOrder'>;
+export type CategoryInput = Omit<Category, 'id'>;
 
-export type MenuItemInput = Omit<MenuItem, 'id' | 'rev'>;
+export type MenuItemInput = Omit<MenuItem, 'id'>;

@@ -32,7 +32,6 @@ export interface Order {
   total: Cents;
   status: OrderStatus;
   createdAt: string;
-  rev: number;
 }
 
 export interface UpdateOrderStatusRequest {
