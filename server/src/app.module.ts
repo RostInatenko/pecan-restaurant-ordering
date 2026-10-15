@@ -1,10 +1,26 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
+import { Module, ValidationPipe } from '@nestjs/common';
+import type { ValidationError } from '@nestjs/common';
+import { APP_PIPE } from '@nestjs/core';
+import { ApiException } from './common/api-exception.js';
+import { MenuModule } from './menu/menu.module.js';
+
+const validationPipe = new ValidationPipe({
+  whitelist: true,
+  forbidNonWhitelisted: true,
+  transform: true,
+  exceptionFactory: (errors: ValidationError[]) =>
+    new ApiException(
+      'VALIDATION',
+      'The request contains invalid fields',
+      errors.map(({ property, constraints }) => ({
+        field: property,
+        problems: Object.values(constraints ?? {}),
+      })),
+    ),
+});
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [MenuModule],
+  providers: [{ provide: APP_PIPE, useValue: validationPipe }],
 })
 export class AppModule {}
