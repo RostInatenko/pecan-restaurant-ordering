@@ -1,16 +1,16 @@
-import { Test } from '@nestjs/testing';
+﻿import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { configureApp } from '../src/app.setup.js';
 
 describe('Menu API (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
+    app = configureApp(moduleRef.createNestApplication());
     await app.init();
   });
 

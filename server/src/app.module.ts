@@ -3,6 +3,7 @@ import type { ValidationError } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { ApiException } from './common/api-exception.js';
 import { MenuModule } from './menu/menu.module.js';
+import { RealtimeModule } from './realtime/realtime.module.js';
 
 const validationPipe = new ValidationPipe({
   whitelist: true,
@@ -20,7 +21,7 @@ const validationPipe = new ValidationPipe({
 });
 
 @Module({
-  imports: [MenuModule],
+  imports: [MenuModule, RealtimeModule],
   providers: [{ provide: APP_PIPE, useValue: validationPipe }],
 })
 export class AppModule {}
