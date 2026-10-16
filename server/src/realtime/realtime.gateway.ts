@@ -5,6 +5,7 @@ import type { ServerMessage } from '@pecan/shared';
 import type { Subscription } from 'rxjs';
 import { WebSocket } from 'ws';
 import { MenuService } from '../menu/menu.service.js';
+import { OrdersService } from '../orders/orders.service.js';
 import { RealtimeEvents } from './realtime-events.js';
 
 export const HEARTBEAT_INTERVAL_MS = 15_000;
@@ -21,6 +22,7 @@ export class RealtimeGateway
   constructor(
     private readonly events: RealtimeEvents,
     private readonly menu: MenuService,
+    private readonly orders: OrdersService,
   ) {}
 
   onModuleInit(): void {
@@ -35,7 +37,7 @@ export class RealtimeGateway
   }
 
   handleConnection(client: WebSocket): void {
-    send(client, { type: 'snapshot', menu: this.menu.snapshot(), orders: [] });
+    send(client, { type: 'snapshot', menu: this.menu.snapshot(), orders: this.orders.list() });
     this.clients.add(client);
   }
 

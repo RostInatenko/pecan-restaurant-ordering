@@ -1,4 +1,4 @@
-import { Test } from '@nestjs/testing';
+﻿import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import type { ServerMessage } from '@pecan/shared';
 import type { AddressInfo } from 'node:net';
@@ -12,7 +12,7 @@ function inbox(socket: WebSocket): () => Promise<ServerMessage> {
   const queue: ServerMessage[] = [];
   const waiting: ((message: ServerMessage) => void)[] = [];
   socket.on('message', (data) => {
-    const message = JSON.parse(String(data)) as ServerMessage;
+    const message = JSON.parse((data as Buffer).toString('utf8')) as ServerMessage;
     const resolve = waiting.shift();
     if (resolve) resolve(message);
     else queue.push(message);

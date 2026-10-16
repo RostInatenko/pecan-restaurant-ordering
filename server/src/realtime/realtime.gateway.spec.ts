@@ -1,6 +1,7 @@
-import type { MenuSnapshot, ServerMessage } from '@pecan/shared';
+﻿import type { MenuSnapshot, ServerMessage } from '@pecan/shared';
 import { WebSocket } from 'ws';
 import type { MenuService } from '../menu/menu.service.js';
+import type { OrdersService } from '../orders/orders.service.js';
 import { RealtimeEvents } from './realtime-events.js';
 import { HEARTBEAT_INTERVAL_MS, RealtimeGateway } from './realtime.gateway.js';
 
@@ -20,7 +21,11 @@ describe('RealtimeGateway', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     events = new RealtimeEvents();
-    gateway = new RealtimeGateway(events, { snapshot: () => menu } as unknown as MenuService);
+    gateway = new RealtimeGateway(
+      events,
+      { snapshot: () => menu } as unknown as MenuService,
+      { list: () => [] } as unknown as OrdersService,
+    );
     gateway.onModuleInit();
   });
 
