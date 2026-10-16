@@ -19,7 +19,7 @@
   display: flex;
   flex: 1;
   gap: 4px;
-  overflow-x: auto;
+  min-width: 0;
 }
 
 .nav .active {

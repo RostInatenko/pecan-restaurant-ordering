@@ -117,6 +117,7 @@ const ROW_HEIGHT = 56;
     :host {
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr);
+      box-sizing: border-box;
       height: 100%;
       padding: 16px 0 0;
     }
@@ -144,7 +145,7 @@ const ROW_HEIGHT = 56;
     .row {
       box-sizing: border-box;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 100px auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
       align-items: center;
       gap: 8px;
       height: 56px;

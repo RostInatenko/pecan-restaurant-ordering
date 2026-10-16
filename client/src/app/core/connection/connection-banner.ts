@@ -35,6 +35,7 @@ import { connectionFeature } from '../../state/connection/connection.feature';
       color: var(--mat-sys-inverse-on-surface);
       font: var(--mat-sys-body-medium);
       box-shadow: var(--mat-sys-level3);
+      --mat-progress-spinner-active-indicator-color: var(--mat-sys-inverse-primary);
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

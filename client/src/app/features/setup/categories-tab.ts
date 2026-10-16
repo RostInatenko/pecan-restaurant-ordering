@@ -40,7 +40,10 @@ import type { CategoryDialogData } from './category-dialog';
           <button
             mat-icon-button
             type="button"
+            disabledInteractive
+            [disabled]="!!itemCounts()[category.id]"
             [attr.aria-label]="'Delete ' + category.name"
+            [title]="itemCounts()[category.id] ? 'Move or delete its items first' : 'Delete'"
             (click)="remove(category)"
           >
             <mat-icon>delete</mat-icon>
@@ -101,9 +104,10 @@ export class CategoriesTab {
   }
 
   protected remove(category: Category): void {
+    if (this.itemCounts()[category.id]) return;
     confirmAction(this.dialog, {
       title: 'Delete category?',
-      message: `"${category.name}" can only be deleted once it has no items.`,
+      message: `"${category.name}" will be removed from the menu for everyone.`,
       confirmLabel: 'Delete',
     })
       .pipe(
