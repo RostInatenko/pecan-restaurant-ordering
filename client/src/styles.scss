@@ -27,3 +27,13 @@ body {
 .chips .mdc-evolution-chip-set__chips {
   flex-wrap: nowrap;
 }
+
+// Let the setup tabs fill the page so the item list's virtual scroll viewport has a height.
+.setup-tabs.mat-mdc-tab-group {
+  height: 100%;
+}
+
+.setup-tabs .mat-mdc-tab-body-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+}
