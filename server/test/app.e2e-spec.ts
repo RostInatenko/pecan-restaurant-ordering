@@ -39,4 +39,18 @@ describe('Menu API (e2e)', () => {
     expect(response.body).toMatchObject({ id: 'item-0002', available: false });
     expect(response.body.name).toBeTruthy();
   });
+
+  it('answers an unknown route with a NOT_FOUND body', async () => {
+    const response = await request(app.getHttpServer()).get('/api/nope').expect(404);
+    expect(response.body.code).toBe('NOT_FOUND');
+  });
+
+  it('answers malformed JSON with a VALIDATION body', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/categories')
+      .set('Content-Type', 'application/json')
+      .send('{"name": ')
+      .expect(400);
+    expect(response.body.code).toBe('VALIDATION');
+  });
 });
