@@ -1,0 +1,43 @@
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+}
+
+.browse {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  padding: 16px 16px 0;
+}
+
+.filters {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.search {
+  width: 100%;
+}
+
+.chips {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.count {
+  margin: 0;
+  height: 20px;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.list {
+  height: 100%;
+}
+
+.empty {
+  padding: 32px 8px;
+  color: var(--mat-sys-on-surface-variant);
+}

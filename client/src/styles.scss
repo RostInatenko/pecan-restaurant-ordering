@@ -22,3 +22,8 @@ body {
   margin: 0;
   height: 100%;
 }
+
+// Material renders the chip row itself; keep long category lists on one scrollable line.
+.chips .mdc-evolution-chip-set__chips {
+  flex-wrap: nowrap;
+}

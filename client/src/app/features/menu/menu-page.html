@@ -1,0 +1,50 @@
+<section class="browse" aria-label="Menu">
+  <div class="filters">
+    <mat-form-field class="search" appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Search the menu</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        #search
+        matInput
+        type="search"
+        autocomplete="off"
+        [value]="query()"
+        (input)="onSearch(search.value)"
+      />
+    </mat-form-field>
+
+    <mat-chip-listbox
+      class="chips"
+      aria-label="Category"
+      hideSingleSelectionIndicator
+      [value]="categoryId() ?? ''"
+      (change)="selectCategory($event.value)"
+    >
+      <mat-chip-option value="">All</mat-chip-option>
+      @for (category of categories(); track category.id) {
+        <mat-chip-option [value]="category.id">{{ category.name }}</mat-chip-option>
+      }
+    </mat-chip-listbox>
+
+    <p class="count" aria-live="polite">
+      @if (loaded()) {
+        {{ items().length | number }} items
+      }
+    </p>
+  </div>
+
+  @if (!loaded()) {
+    <app-skeleton-rows [count]="12" [height]="rowHeight" />
+  } @else if (items().length === 0) {
+    <p class="empty">Nothing matches your search. Try another word or category.</p>
+  } @else {
+    <cdk-virtual-scroll-viewport
+      class="list"
+      [itemSize]="rowHeight"
+      minBufferPx="400"
+      maxBufferPx="800"
+    >
+      <app-menu-item-row *cdkVirtualFor="let item of items(); trackBy: trackById" [item]="item" />
+    </cdk-virtual-scroll-viewport>
+  }
+</section>
