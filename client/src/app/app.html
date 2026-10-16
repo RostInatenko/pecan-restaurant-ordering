@@ -1,1 +1,15 @@
-<router-outlet />
+<mat-toolbar class="toolbar">
+  <span class="brand">Restaurant</span>
+  <nav class="nav" aria-label="Main">
+    <a mat-button routerLink="/menu" routerLinkActive="active">Menu</a>
+    <a mat-button routerLink="/orders" routerLinkActive="active">Orders</a>
+    <a mat-button routerLink="/setup" routerLinkActive="active">Setup</a>
+  </nav>
+  <app-connection-indicator />
+</mat-toolbar>
+
+<main class="content">
+  <router-outlet />
+</main>
+
+<app-connection-banner />
