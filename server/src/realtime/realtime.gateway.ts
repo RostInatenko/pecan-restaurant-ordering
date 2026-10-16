@@ -4,6 +4,7 @@ import { WebSocketGateway } from '@nestjs/websockets';
 import type { ServerMessage } from '@pecan/shared';
 import type { Subscription } from 'rxjs';
 import { WebSocket } from 'ws';
+import { ChaosConfig } from '../chaos/chaos.config.js';
 import { MenuService } from '../menu/menu.service.js';
 import { OrdersService } from '../orders/orders.service.js';
 import { RealtimeEvents } from './realtime-events.js';
@@ -17,22 +18,26 @@ export class RealtimeGateway
   /** Only clients that already received their snapshot get events. */
   private readonly clients = new Set<WebSocket>();
   private subscription?: Subscription;
-  private heartbeat?: NodeJS.Timeout;
+  private readonly timers: NodeJS.Timeout[] = [];
 
   constructor(
     private readonly events: RealtimeEvents,
     private readonly menu: MenuService,
     private readonly orders: OrdersService,
+    private readonly chaos: ChaosConfig,
   ) {}
 
   onModuleInit(): void {
     this.subscription = this.events.events$.subscribe((event) => this.broadcast(event));
-    this.heartbeat = setInterval(() => this.broadcast({ type: 'ping' }), HEARTBEAT_INTERVAL_MS);
+    this.timers.push(setInterval(() => this.broadcast({ type: 'ping' }), HEARTBEAT_INTERVAL_MS));
+    if (this.chaos.enabled) {
+      this.timers.push(setInterval(() => this.dropSomeClients(), this.chaos.socketDropIntervalMs));
+    }
   }
 
   onModuleDestroy(): void {
     this.subscription?.unsubscribe();
-    clearInterval(this.heartbeat);
+    this.timers.forEach((timer) => clearInterval(timer));
     this.clients.clear();
   }
 
@@ -49,6 +54,13 @@ export class RealtimeGateway
     const data = JSON.stringify(message);
     for (const client of this.clients) {
       if (client.readyState === WebSocket.OPEN) client.send(data);
+    }
+  }
+
+  /** `terminate()` cuts the socket without a close handshake, like a lost network. */
+  private dropSomeClients(): void {
+    for (const client of this.clients) {
+      if (this.chaos.random() < this.chaos.socketDropRate) client.terminate();
     }
   }
 }
