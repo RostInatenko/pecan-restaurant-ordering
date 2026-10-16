@@ -4,18 +4,28 @@ import {
   CdkVirtualScrollViewport,
 } from '@angular/cdk/scrolling';
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButton } from '@angular/material/button';
 import { MatChipListbox, MatChipOption } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel, MatPrefix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
-import type { MenuItem } from '@pecan/shared';
+import type { CartChange, MenuItem } from '@pecan/shared';
 import { Store } from '@ngrx/store';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, filter } from 'rxjs';
+import { MoneyPipe } from '../../shared/money.pipe';
 import { SkeletonRows } from '../../shared/skeleton-rows';
+import { CartActions, CheckoutActions } from '../../state/cart/cart.actions';
+import { cartFeature } from '../../state/cart/cart.feature';
 import { MenuPageActions } from '../../state/menu/menu.actions';
 import { menuFeature } from '../../state/menu/menu.feature';
+import { AddToCartDialog } from './add-to-cart-dialog';
+import type { AddToCartResult } from './add-to-cart-dialog';
+import { CartPanel } from './cart-panel';
+import { CheckoutReviewDialog } from './checkout-review-dialog';
+import type { CheckoutReviewData } from './checkout-review-dialog';
 import { MENU_ROW_HEIGHT, MenuItemRow } from './menu-item-row';
 
 @Component({
@@ -25,6 +35,7 @@ import { MENU_ROW_HEIGHT, MenuItemRow } from './menu-item-row';
     CdkFixedSizeVirtualScroll,
     CdkVirtualForOf,
     DecimalPipe,
+    MatButton,
     MatChipListbox,
     MatChipOption,
     MatFormField,
@@ -32,6 +43,8 @@ import { MENU_ROW_HEIGHT, MenuItemRow } from './menu-item-row';
     MatPrefix,
     MatIcon,
     MatInput,
+    MoneyPipe,
+    CartPanel,
     MenuItemRow,
     SkeletonRows,
   ],
@@ -41,7 +54,9 @@ import { MENU_ROW_HEIGHT, MenuItemRow } from './menu-item-row';
 })
 export class MenuPage {
   private readonly store = inject(Store);
+  private readonly dialog = inject(MatDialog);
   private readonly queryInput = new Subject<string>();
+  private reviewOpen = false;
 
   protected readonly rowHeight = MENU_ROW_HEIGHT;
   protected readonly loaded = this.store.selectSignal(menuFeature.selectLoaded);
@@ -49,12 +64,21 @@ export class MenuPage {
   protected readonly items = this.store.selectSignal(menuFeature.selectVisibleItems);
   protected readonly query = this.store.selectSignal(menuFeature.selectQuery);
   protected readonly categoryId = this.store.selectSignal(menuFeature.selectCategoryId);
+  protected readonly itemCount = this.store.selectSignal(cartFeature.selectItemCount);
+  protected readonly total = this.store.selectSignal(cartFeature.selectTotal);
+  private readonly checkout = this.store.selectSignal(cartFeature.selectCheckout);
+  private readonly lines = this.store.selectSignal(cartFeature.selectLines);
 
   constructor() {
     // The input updates instantly; filtering 5,000 items waits for a short pause in typing.
     this.queryInput
       .pipe(debounceTime(150), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe((query) => this.store.dispatch(MenuPageActions.queryChanged({ query })));
+
+    effect(() => {
+      const { status, changes } = this.checkout();
+      if (status === 'reviewing' && !this.reviewOpen) untracked(() => this.openReview(changes));
+    });
   }
 
   protected onSearch(query: string): void {
@@ -65,5 +89,38 @@ export class MenuPage {
     this.store.dispatch(MenuPageActions.categorySelected({ categoryId: categoryId || null }));
   }
 
+  protected openAdd(item: MenuItem): void {
+    this.dialog
+      .open<AddToCartDialog, MenuItem, AddToCartResult>(AddToCartDialog, {
+        data: item,
+        width: '420px',
+      })
+      .afterClosed()
+      .pipe(filter((result): result is AddToCartResult => result !== undefined))
+      .subscribe(({ quantity, unitPrice }) =>
+        this.store.dispatch(CartActions.itemAdded({ item, quantity, unitPrice })),
+      );
+  }
+
+  protected openCart(): void {
+    this.dialog.open(CartPanel, { width: '100%', maxWidth: '520px', autoFocus: false });
+  }
+
   protected readonly trackById = (_: number, item: MenuItem): string => item.id;
+
+  private openReview(changes: CartChange[]): void {
+    this.reviewOpen = true;
+    this.dialog
+      .open<CheckoutReviewDialog, CheckoutReviewData, boolean>(CheckoutReviewDialog, {
+        data: { changes, lines: this.lines() },
+        width: '480px',
+      })
+      .afterClosed()
+      .subscribe((accepted) => {
+        this.reviewOpen = false;
+        this.store.dispatch(
+          accepted ? CheckoutActions.changesAccepted() : CheckoutActions.reviewDismissed(),
+        );
+      });
+  }
 }

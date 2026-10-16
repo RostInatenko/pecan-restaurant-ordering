@@ -44,7 +44,25 @@
       minBufferPx="400"
       maxBufferPx="800"
     >
-      <app-menu-item-row *cdkVirtualFor="let item of items(); trackBy: trackById" [item]="item" />
+      <app-menu-item-row
+        *cdkVirtualFor="let item of items(); trackBy: trackById"
+        [item]="item"
+        (add)="openAdd(item)"
+      />
     </cdk-virtual-scroll-viewport>
   }
+
+  <button mat-flat-button type="button" class="cart-bar" (click)="openCart()">
+    <mat-icon>shopping_cart</mat-icon>
+    @if (itemCount()) {
+      View order · {{ itemCount() }} {{ itemCount() === 1 ? 'item' : 'items' }} ·
+      {{ total() | money }}
+    } @else {
+      Your cart is empty
+    }
+  </button>
 </section>
+
+<aside class="cart" aria-label="Your order">
+  <app-cart-panel />
+</aside>

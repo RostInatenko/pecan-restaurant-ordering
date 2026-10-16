@@ -1,0 +1,133 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+}
+
+.count,
+.empty {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 72px auto;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.line-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font: var(--mat-sys-title-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.change {
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-error);
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-value {
+  min-width: 24px;
+  text-align: center;
+}
+
+.line-total {
+  text-align: right;
+  font: var(--mat-sys-title-small);
+}
+
+.discount {
+  width: 100%;
+}
+
+.hint-error {
+  color: var(--mat-sys-error);
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  margin: 0;
+
+  dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .total {
+    font: var(--mat-sys-title-medium);
+  }
+}
+
+.notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-body-small);
+}
+
+.error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-small);
+
+  span {
+    display: block;
+    margin-top: 4px;
+  }
+}
+
+.place {
+  width: 100%;
+  height: 48px;
+
+  mat-spinner {
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+}

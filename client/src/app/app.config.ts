@@ -8,6 +8,10 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
 import { apiErrorInterceptor } from './core/http/api-error.interceptor';
+import { CartPersistenceEffects } from './state/cart/cart-persistence.effects';
+import { cartFeature } from './state/cart/cart.feature';
+import { loadCart } from './state/cart/cart.storage';
+import { CheckoutEffects } from './state/cart/checkout.effects';
 import { connectionFeature } from './state/connection/connection.feature';
 import { menuFeature } from './state/menu/menu.feature';
 import { ordersFeature } from './state/orders/orders.feature';
@@ -33,7 +37,8 @@ export const appConfig: ApplicationConfig = {
     provideState(connectionFeature),
     provideState(menuFeature),
     provideState(ordersFeature),
-    provideEffects(RealtimeEffects),
+    provideState(cartFeature.name, cartFeature.reducer, { initialState: () => loadCart() }),
+    provideEffects(RealtimeEffects, CheckoutEffects, CartPersistenceEffects),
     provideStoreDevtools({ maxAge: 50, logOnly: !isDevMode() }),
   ],
 };

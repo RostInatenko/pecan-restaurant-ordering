@@ -1,12 +1,12 @@
 :host {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 400px;
   height: 100%;
 }
 
 .browse {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   padding: 16px 16px 0;
 }
@@ -40,4 +40,30 @@
 .empty {
   padding: 32px 8px;
   color: var(--mat-sys-on-surface-variant);
+}
+
+.cart {
+  overflow-y: auto;
+  border-left: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.cart-bar {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cart {
+    display: none;
+  }
+
+  .cart-bar {
+    display: inline-flex;
+    margin: 8px 0 12px;
+    height: 48px;
+  }
 }
