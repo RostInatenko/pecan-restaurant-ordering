@@ -22,19 +22,41 @@ npm start
 Open <http://localhost:4200>. `npm start` runs the Nest server (port 3000) and the Angular dev
 server together; the dev server proxies `/api` and `/ws` to Nest.
 
-| Command               | What it does                                                                 |
-| --------------------- | ---------------------------------------------------------------------------- |
-| `npm start`           | Server + client in watch mode                                                |
+| Command               | What it does                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| `npm start`           | Server + client in watch mode                                                                   |
 | `npm run serve`       | Production build, then one server on <http://localhost:3000> serving the app, API and WebSocket |
-| `npm run start:chaos` | Like `npm start`, but the server injects latency, failures and dropped sockets |
-| `npm test`            | Server unit + e2e tests, then client tests (Vitest)                          |
-| `npm run lint`        | Type-checks the shared contract, then lints and type-checks server and client |
-| `npm run build`       | Builds server and client                                                     |
+| `npm run start:chaos` | Like `npm start`, but the server injects latency, failures and dropped sockets                  |
+| `npm test`            | Server unit + e2e tests, then client tests (Vitest)                                             |
+| `npm run lint`        | Type-checks the shared contract, then lints and type-checks server and client                   |
+| `npm run build`       | Builds server and client                                                                        |
 
 **Try the live parts:** open the Menu in two windows and Setup in a third. Toggle an item's
 availability or change its price in Setup and watch both menus update. Put the item in a cart
-first, then make it unavailable: checkout shows what changed before anything is placed. Stop the
-server (Ctrl+C) and start it again to see the connection banner and the automatic resync.
+first, then make it unavailable: checkout shows what changed before anything is placed.
+
+**Try a lost connection:** run `npm run serve`, open <http://localhost:3000>, stop the server with
+Ctrl+C (the page stays open and shows the reconnect banner), then start it again with
+`npm run start:prod -w server`: the page reconnects and resyncs by itself. `npm run start:chaos`
+also drops sockets every ~20 s and fails some requests, including after an order was created, to
+show that Retry never places it twice.
+
+## How the brief is covered
+
+| Requirement                                  | Where                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Manage categories and items                  | Setup page (`features/setup`), server `menu/`                                                                |
+| Price, availability, open price per item     | Setup item dialog; open price → price asked in the add dialog (`add-to-cart-dialog.ts`)                      |
+| Changes reflected in Menu immediately        | WebSocket events → store (`realtime.service.ts`, `realtime.effects.ts`)                                      |
+| Large menu                                   | 5,000 seeded items, CDK virtual scroll, memoised filter selectors                                            |
+| Cart with quantity, open-price price entry   | `state/cart/`, cart panel                                                                                    |
+| Fixed-amount discount                        | Cart panel; capped at the subtotal, validated by the server                                                  |
+| Order never placed twice                     | Idempotency key + locked cart on unknown outcome + `exhaustMap` ([details](#an-order-is-never-placed-twice)) |
+| Informed of changes before confirming        | Live cart warnings, review dialog, server 409 `STALE_CART`                                                   |
+| Orders page with live status                 | `features/orders`; server advances statuses on a timer, kitchen tab advances manually                        |
+| Fast, stable, smooth on slow connections     | Lazy routes, skeletons, compression, `OnPush` + signals                                                      |
+| Errors and lost connection don't break it    | Typed errors, Retry, reconnect with backoff, connection banner                                               |
+| One or two commands; build, tests, lint pass | `npm install` + `npm start`; `npm run build`, `npm test`, `npm run lint`                                     |
 
 ## Architecture
 
@@ -78,7 +100,7 @@ REST.
 - Because snapshot and events share one ordered channel, an event can never arrive before the data
   it modifies. Loading over REST and listening on a socket means two connections that can race:
   for example, a stale REST response can resurrect an item that a socket event just deleted.
-- The gateway sends the snapshot *before* adding the client to its broadcast set, so a client
+- The gateway sends the snapshot _before_ adding the client to its broadcast set, so a client
   cannot receive an event ahead of its snapshot.
 - Trade-off: data loading depends on the WebSocket. If it drops, the app keeps the last known data,
   shows a banner, and catches up on reconnect.
@@ -91,25 +113,30 @@ response therefore cannot overwrite newer data, and every tab follows the same p
 socket down, a setup save still succeeds and is visible after the reconnect snapshot.
 
 Setup dialogs call the API services directly rather than through NgRx effects: nothing they return
-goes into the store, and a dialog needs to know whether *its own* save worked (close on success,
+goes into the store, and a dialog needs to know whether _its own_ save worked (close on success,
 keep the form and show the error otherwise). Checkout, which has real state, goes through the store.
 
 ### An order is never placed twice
 
 Three layers, from UX to guarantee:
 
-1. **UI**: the button is disabled and cart edits are ignored while submitting.
+1. **UI**: the button is disabled and cart edits are ignored while submitting (and while the
+   outcome of a failed attempt is unknown, see below).
 2. **Store**: the checkout is a small state machine (`idle → reviewing | submitting → failed`),
    and the submit effect uses `exhaustMap`, so a second submit while one is in flight is dropped.
 3. **Server (the guarantee)**: every checkout attempt carries an `Idempotency-Key` (UUID). The
    server stores `key → order + cart fingerprint`. The same key with the same cart returns the
-   *original* order (marked `Idempotent-Replayed: true`); the same key with a different cart is
+   _original_ order (marked `Idempotent-Replayed: true`); the same key with a different cart is
    rejected with 422.
 
-The key belongs to one checkout attempt: it is **kept across retries** (network error, 5xx,
-reload during submit, since the cart and its key are persisted) and **dropped whenever the cart
-changes**. So "the request succeeded but the response was lost" resolves to the existing order
-instead of a duplicate. Chaos mode reproduces exactly that case.
+The key belongs to one checkout attempt. After a network error, a 5xx, or a reload during submit
+(the cart and its key are persisted), the outcome is **unknown**: the order may exist and only the
+response was lost. In that state the **cart is locked** and **Retry resends the same key**, without
+a client-side review, so the server settles it: it returns the existing order, creates it, or
+answers 409 if the menu changed (which means nothing was placed, so reviewing and editing are safe
+again). The key is dropped only when the cart changes after such a definite answer. "The request
+succeeded but the response was lost" therefore resolves to the existing order instead of a
+duplicate; chaos mode reproduces exactly that case.
 
 `place()` on the server is synchronous, so two identical requests cannot interleave between "key
 known?" and "save". With an async database this would need an atomic reservation (unique
@@ -155,7 +182,7 @@ messages:
 - `OnPush` everywhere (enforced by lint), zoneless change detection, signals via `selectSignal`.
 - **Skeleton rows have the exact height of real rows**, so nothing jumps when data arrives.
 - **Lazy routes** per page; the snackbar is loaded on first use. Initial bundle ≈ 125 KB
-  transferred; the menu page chunk ≈ 39 KB.
+  transferred, then per page ≈ 13 KB (menu), 28 KB (setup), 2 KB (orders).
 - **Compression**: WebSocket `permessage-deflate` shrinks the snapshot from ~810 KB to ~60 KB, and
   HTTP responses are gzipped.
 
