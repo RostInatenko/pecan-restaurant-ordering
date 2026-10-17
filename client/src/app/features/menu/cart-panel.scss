@@ -1,4 +1,5 @@
-:host {
+// Layout lives on an inner element: inside a dialog, Material gives the host `display: contents`.
+.panel {
   display: flex;
   flex-direction: column;
   gap: 12px;

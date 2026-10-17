@@ -1,123 +1,126 @@
-<header class="header">
-  <h2>Your order</h2>
-  @if (itemCount()) {
-    <span class="count">{{ itemCount() }} {{ itemCount() === 1 ? 'item' : 'items' }}</span>
-  }
-</header>
+<div class="panel">
+  <header class="header">
+    <h2>Your order</h2>
+    @if (itemCount()) {
+      <span class="count">{{ itemCount() }} {{ itemCount() === 1 ? 'item' : 'items' }}</span>
+    }
+  </header>
 
-@if (lines().length === 0) {
-  <p class="empty">Your cart is empty. Pick something from the menu.</p>
-} @else {
-  <ul class="lines">
-    @for (line of lines(); track line.key) {
-      <li class="line" [class.has-change]="changesByItem()[line.itemId]">
-        <div class="line-text">
-          <span class="name">{{ line.name }}</span>
-          <span class="unit">
-            {{ line.unitPrice | money }}
-            @if (line.openPrice) {
-              <em>open price</em>
-            }
-          </span>
-          @if (changesByItem()[line.itemId]; as change) {
-            <span class="change">
-              <mat-icon inline>warning</mat-icon>
-              {{ describe(change) }}
+  @if (lines().length === 0) {
+    <p class="empty">Your cart is empty. Pick something from the menu.</p>
+  } @else {
+    <ul class="lines">
+      @for (line of lines(); track line.key) {
+        <li class="line" [class.has-change]="changesByItem()[line.itemId]">
+          <div class="line-text">
+            <span class="name">{{ line.name }}</span>
+            <span class="unit">
+              {{ line.unitPrice | money }}
+              @if (line.openPrice) {
+                <em>open price</em>
+              }
             </span>
-          }
-        </div>
-        <div class="quantity">
+            @if (changesByItem()[line.itemId]; as change) {
+              <span class="change">
+                <mat-icon inline>warning</mat-icon>
+                {{ describe(change) }}
+              </span>
+            }
+          </div>
+          <div class="quantity">
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Decrease ' + line.name"
+              [disabled]="locked()"
+              (click)="setQuantity(line, line.quantity - 1)"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="quantity-value">{{ line.quantity }}</span>
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'Increase ' + line.name"
+              [disabled]="locked() || line.quantity >= maxQuantity"
+              (click)="setQuantity(line, line.quantity + 1)"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+          <span class="line-total">{{ line.unitPrice * line.quantity | money }}</span>
           <button
             mat-icon-button
             type="button"
-            [attr.aria-label]="'Decrease ' + line.name"
+            class="remove"
+            [attr.aria-label]="'Remove ' + line.name"
             [disabled]="locked()"
-            (click)="setQuantity(line, line.quantity - 1)"
+            (click)="remove(line)"
           >
-            <mat-icon>remove</mat-icon>
+            <mat-icon>close</mat-icon>
           </button>
-          <span class="quantity-value">{{ line.quantity }}</span>
-          <button
-            mat-icon-button
-            type="button"
-            [attr.aria-label]="'Increase ' + line.name"
-            [disabled]="locked() || line.quantity >= maxQuantity"
-            (click)="setQuantity(line, line.quantity + 1)"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-        </div>
-        <span class="line-total">{{ line.unitPrice * line.quantity | money }}</span>
-        <button
-          mat-icon-button
-          type="button"
-          class="remove"
-          [attr.aria-label]="'Remove ' + line.name"
-          [disabled]="locked()"
-          (click)="remove(line)"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      </li>
-    }
-  </ul>
-
-  <mat-form-field class="discount" appearance="outline" subscriptSizing="dynamic">
-    <mat-label>Discount</mat-label>
-    <span matTextPrefix>$&nbsp;</span>
-    <input
-      #discountInput
-      matInput
-      inputmode="decimal"
-      autocomplete="off"
-      [value]="discountText()"
-      [disabled]="locked()"
-      (change)="applyDiscount(discountInput.value)"
-    />
-    @if (discountInvalid()) {
-      <mat-hint class="hint-error">Enter an amount such as 5.00</mat-hint>
-    } @else if (discountCapped()) {
-      <mat-hint>Capped at the subtotal</mat-hint>
-    }
-  </mat-form-field>
-
-  <dl class="totals">
-    <dt>Subtotal</dt>
-    <dd>{{ subtotal() | money }}</dd>
-    @if (appliedDiscount()) {
-      <dt>Discount</dt>
-      <dd>−{{ appliedDiscount() | money }}</dd>
-    }
-    <dt class="total">Total</dt>
-    <dd class="total">{{ total() | money }}</dd>
-  </dl>
-
-  @if (liveChanges().length > 0 && !failed()) {
-    <p class="notice">
-      Some items changed since you added them. You'll review the changes before the order is placed.
-    </p>
-  }
-
-  @if (failed()) {
-    <p class="error" role="alert">
-      {{ checkout().error?.message }}
-      @if (locked()) {
-        <span>
-          We can't tell yet whether the order went through, so the cart is locked. Retry to find
-          out; it won't be placed twice.
-        </span>
+        </li>
       }
-    </p>
-  }
+    </ul>
 
-  <button mat-flat-button type="button" class="place" [disabled]="busy()" (click)="placeOrder()">
-    @if (busy()) {
-      <mat-spinner diameter="20" />
-      Placing order…
-    } @else if (failed()) {
-      Retry
-    } @else {
-      Place order · {{ total() | money }}
+    <mat-form-field class="discount" appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Discount</mat-label>
+      <span matTextPrefix>$&nbsp;</span>
+      <input
+        #discountInput
+        matInput
+        inputmode="decimal"
+        autocomplete="off"
+        [value]="discountText()"
+        [disabled]="locked()"
+        (change)="applyDiscount(discountInput.value)"
+      />
+      @if (discountInvalid()) {
+        <mat-hint class="hint-error">Enter an amount such as 5.00</mat-hint>
+      } @else if (discountCapped()) {
+        <mat-hint>Capped at the subtotal</mat-hint>
+      }
+    </mat-form-field>
+
+    <dl class="totals">
+      <dt>Subtotal</dt>
+      <dd>{{ subtotal() | money }}</dd>
+      @if (appliedDiscount()) {
+        <dt>Discount</dt>
+        <dd>−{{ appliedDiscount() | money }}</dd>
+      }
+      <dt class="total">Total</dt>
+      <dd class="total">{{ total() | money }}</dd>
+    </dl>
+
+    @if (liveChanges().length > 0 && !failed()) {
+      <p class="notice">
+        Some items changed since you added them. You'll review the changes before the order is
+        placed.
+      </p>
     }
-  </button>
-}
+
+    @if (failed()) {
+      <p class="error" role="alert">
+        {{ checkout().error?.message }}
+        @if (locked()) {
+          <span>
+            We can't tell yet whether the order went through, so the cart is locked. Retry to find
+            out; it won't be placed twice.
+          </span>
+        }
+      </p>
+    }
+
+    <button mat-flat-button type="button" class="place" [disabled]="busy()" (click)="placeOrder()">
+      @if (busy()) {
+        <mat-spinner diameter="20" />
+        Placing order…
+      } @else if (failed()) {
+        Retry
+      } @else {
+        Place order · {{ total() | money }}
+      }
+    </button>
+  }
+</div>

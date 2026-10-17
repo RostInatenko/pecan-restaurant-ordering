@@ -115,7 +115,11 @@ export class MenuPage {
   }
 
   protected openCart(): void {
-    this.dialog.open(CartPanel, { width: '100%', maxWidth: '520px', autoFocus: false });
+    this.dialog.open(CartPanel, {
+      width: '520px',
+      maxWidth: 'calc(100vw - 32px)',
+      autoFocus: false,
+    });
   }
 
   protected readonly trackById = (_: number, item: MenuItem): string => item.id;
