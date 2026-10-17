@@ -15,6 +15,7 @@ import { MatInput } from '@angular/material/input';
 import type { CartChange, MenuItem } from '@pecan/shared';
 import { Store } from '@ngrx/store';
 import { Subject, debounceTime, distinctUntilChanged, filter } from 'rxjs';
+import { Notifier } from '../../core/notifier';
 import { MoneyPipe } from '../../shared/money.pipe';
 import { SkeletonRows } from '../../shared/skeleton-rows';
 import { CartActions, CheckoutActions } from '../../state/cart/cart.actions';
@@ -55,6 +56,7 @@ import { MENU_ROW_HEIGHT, MenuItemRow } from './menu-item-row';
 export class MenuPage {
   private readonly store = inject(Store);
   private readonly dialog = inject(MatDialog);
+  private readonly notifier = inject(Notifier);
   private readonly queryInput = new Subject<string>();
   private reviewOpen = false;
 
@@ -66,6 +68,7 @@ export class MenuPage {
   protected readonly categoryId = this.store.selectSignal(menuFeature.selectCategoryId);
   protected readonly itemCount = this.store.selectSignal(cartFeature.selectItemCount);
   protected readonly total = this.store.selectSignal(cartFeature.selectTotal);
+  private readonly cartLocked = this.store.selectSignal(cartFeature.selectCartLocked);
   private readonly checkout = this.store.selectSignal(cartFeature.selectCheckout);
   private readonly lines = this.store.selectSignal(cartFeature.selectLines);
 
@@ -90,6 +93,10 @@ export class MenuPage {
   }
 
   protected openAdd(item: MenuItem): void {
+    if (this.cartLocked()) {
+      this.notifier.error('Finish the pending order first: press Retry in your cart.');
+      return;
+    }
     this.dialog
       .open<AddToCartDialog, MenuItem, AddToCartResult>(AddToCartDialog, {
         data: item,

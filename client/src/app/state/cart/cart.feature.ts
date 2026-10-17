@@ -132,10 +132,12 @@ export const cartFeature = createFeature({
     const selectItemCount = createSelector(selectLines, (lines) =>
       lines.reduce((sum, line) => sum + line.quantity, 0),
     );
+    /** Until the first snapshot arrives the menu is empty, which must not read as "removed". */
     const selectLiveChanges = createSelector(
       selectLines,
       menuFeature.selectItemEntities,
-      detectChanges,
+      menuFeature.selectLoaded,
+      (lines, items, loaded) => (loaded ? detectChanges(lines, items) : []),
     );
     const selectChangesByItem = createSelector(
       selectLiveChanges,

@@ -55,7 +55,14 @@ export interface AddToCartResult {
           </button>
           <mat-form-field appearance="outline" class="quantity-field">
             <mat-label>Quantity</mat-label>
-            <input matInput type="number" min="1" [max]="maxQuantity" formControlName="quantity" />
+            <input
+              matInput
+              type="number"
+              min="1"
+              [max]="maxQuantity"
+              formControlName="quantity"
+              [attr.cdkFocusInitial]="item.openPrice ? null : ''"
+            />
             <mat-error>1 to {{ maxQuantity }}</mat-error>
           </mat-form-field>
           <button mat-icon-button type="button" aria-label="Increase quantity" (click)="step(1)">
@@ -67,7 +74,13 @@ export interface AddToCartResult {
           <mat-form-field appearance="outline" class="price-field">
             <mat-label>Price</mat-label>
             <span matTextPrefix>$&nbsp;</span>
-            <input matInput inputmode="decimal" autocomplete="off" formControlName="price" />
+            <input
+              matInput
+              inputmode="decimal"
+              autocomplete="off"
+              formControlName="price"
+              cdkFocusInitial
+            />
             <mat-hint>Open-price item: enter the agreed price</mat-hint>
             <mat-error>Enter a price such as 12.50</mat-error>
           </mat-form-field>

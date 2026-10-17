@@ -137,6 +137,16 @@ describe('cart reducer', () => {
 });
 
 describe('cart selectors', () => {
+  it('reports no menu changes before the menu has loaded', () => {
+    const lines = reduce(
+      CartActions.itemAdded({ item: burger, quantity: 1, unitPrice: 1000 }),
+    ).lines;
+    expect(cartFeature.selectLiveChanges.projector(lines, {}, false)).toEqual([]);
+    expect(cartFeature.selectLiveChanges.projector(lines, {}, true)).toEqual([
+      { kind: 'removed', itemId: burger.id },
+    ]);
+  });
+
   it('caps the discount at the subtotal', () => {
     expect(cartFeature.selectAppliedDiscount.projector(1500, 2000)).toBe(1500);
     expect(cartFeature.selectTotal.projector(1500, 1500)).toBe(0);
