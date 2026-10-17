@@ -28,10 +28,10 @@
     "@nestjs/websockets": "^12.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
-    "compression": "^1.8.1",
+    "compression": "^1.8.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "ws": "^8.18.3"
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
