@@ -1,5 +1,7 @@
 # Restaurant Ordering: a real-time prototype
 
+[![CI](https://github.com/RostInatenko/pecan-restaurant-ordering/actions/workflows/ci.yml/badge.svg)](https://github.com/RostInatenko/pecan-restaurant-ordering/actions/workflows/ci.yml)
+
 An Angular 21 + NgRx ordering app with a NestJS server. The menu (5,000 items), prices and
 availability change live while people browse, orders can never be placed twice, and the order
 status updates in real time.
@@ -247,6 +249,7 @@ compile.
   409 rate), error tracking (Sentry or similar) on both apps.
 - **Testing**: Playwright end-to-end tests for checkout and reconnect flows; contract tests or a
   schema (OpenAPI / JSON Schema) generated from the shared types.
-- **Delivery**: CI running lint/test/build, Docker images, environment configuration, HTTPS/WSS,
-  security headers, and a service worker for an offline-capable shell.
+- **Delivery**: Docker images, environment configuration and a deployment pipeline (CI already
+  runs lint, tests and build on Node 20 and 22 for every push), HTTPS/WSS, security headers, and a
+  service worker for an offline-capable shell.
 - **Accessibility and i18n audit**, currency and locale from configuration.
