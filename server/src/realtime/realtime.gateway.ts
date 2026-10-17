@@ -1,4 +1,4 @@
-﻿import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { WebSocketGateway } from '@nestjs/websockets';
 import type { ServerMessage } from '@pecan/shared';

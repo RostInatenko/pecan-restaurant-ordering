@@ -1,4 +1,4 @@
-﻿import type { MenuSnapshot, ServerMessage } from '@pecan/shared';
+import type { MenuSnapshot, ServerMessage } from '@pecan/shared';
 import { WebSocket } from 'ws';
 import type { ChaosConfig } from '../chaos/chaos.config.js';
 import type { MenuService } from '../menu/menu.service.js';
