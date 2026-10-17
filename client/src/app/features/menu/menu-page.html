@@ -52,7 +52,13 @@
     </cdk-virtual-scroll-viewport>
   }
 
-  <button mat-flat-button type="button" class="cart-bar" (click)="openCart()">
+  <button
+    mat-flat-button
+    type="button"
+    class="cart-bar"
+    [disabled]="itemCount() === 0"
+    (click)="openCart()"
+  >
     <mat-icon>shopping_cart</mat-icon>
     @if (itemCount()) {
       View order · {{ itemCount() }} {{ itemCount() === 1 ? 'item' : 'items' }} ·

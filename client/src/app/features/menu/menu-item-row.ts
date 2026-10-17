@@ -21,7 +21,14 @@ export const MENU_ROW_HEIGHT = 72;
       }
     </div>
     @if (item().available) {
-      <button mat-stroked-button type="button" (click)="add.emit()">Add</button>
+      <button
+        mat-stroked-button
+        type="button"
+        [attr.aria-label]="'Add ' + item().name"
+        (click)="add.emit()"
+      >
+        Add
+      </button>
     } @else {
       <span class="unavailable">Unavailable</span>
     }

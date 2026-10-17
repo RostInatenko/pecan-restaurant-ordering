@@ -14,8 +14,11 @@ export interface MenuState {
   categoryId: string | null;
 }
 
+/** Much faster than `localeCompare` when re-sorting 5,000 names after every live update. */
+const collator = new Intl.Collator('en');
+
 const categoryAdapter = createEntityAdapter<Category>({
-  sortComparer: (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
+  sortComparer: (a, b) => a.sortOrder - b.sortOrder || collator.compare(a.name, b.name),
 });
 const itemAdapter = createEntityAdapter<MenuItem>();
 
@@ -78,7 +81,7 @@ export const menuFeature = createFeature({
         return [...items].sort(
           (a, b) =>
             (position.get(a.categoryId) ?? Infinity) - (position.get(b.categoryId) ?? Infinity) ||
-            a.name.localeCompare(b.name),
+            collator.compare(a.name, b.name),
         );
       },
     );
