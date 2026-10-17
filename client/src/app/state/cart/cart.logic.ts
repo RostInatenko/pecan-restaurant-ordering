@@ -15,7 +15,22 @@ export interface CartLine {
 export const lineKey = (itemId: string, unitPrice: Cents): string => `${itemId}:${unitPrice}`;
 
 export const clampQuantity = (quantity: number): number =>
-  Math.max(0, Math.min(MAX_QUANTITY, Math.floor(quantity)));
+  Number.isFinite(quantity) ? Math.max(0, Math.min(MAX_QUANTITY, Math.floor(quantity))) : 0;
+
+/** A line that could actually be ordered. Guards against bad input and corrupt saved carts. */
+export function isValidLine(line: unknown): line is CartLine {
+  if (typeof line !== 'object' || line === null) return false;
+  const { key, itemId, unitPrice, quantity } = line as Partial<CartLine>;
+  return (
+    typeof key === 'string' &&
+    typeof itemId === 'string' &&
+    Number.isInteger(unitPrice) &&
+    (unitPrice ?? -1) >= 0 &&
+    Number.isInteger(quantity) &&
+    (quantity ?? 0) >= 1 &&
+    (quantity ?? 0) <= MAX_QUANTITY
+  );
+}
 
 /** Combines lines that ended up with the same key, e.g. after a price update. */
 export function mergeLines(lines: readonly CartLine[]): CartLine[] {

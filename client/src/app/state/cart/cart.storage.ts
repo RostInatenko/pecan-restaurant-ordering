@@ -1,5 +1,6 @@
 import type { CartState } from './cart.feature';
 import { initialCartState } from './cart.feature';
+import { isValidLine } from './cart.logic';
 
 const STORAGE_KEY = 'pecan.cart.v1';
 
@@ -10,10 +11,11 @@ const STORAGE_KEY = 'pecan.cart.v1';
  */
 export function loadCart(storage: Storage = localStorage): CartState {
   try {
-    const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as CartState | null;
-    if (!saved || !Array.isArray(saved.lines) || typeof saved.discount !== 'number') {
+    const parsed = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as CartState | null;
+    if (!parsed || !Array.isArray(parsed.lines) || typeof parsed.discount !== 'number') {
       return initialCartState;
     }
+    const saved: CartState = { ...parsed, lines: parsed.lines.filter(isValidLine) };
     if (saved.checkout?.status !== 'submitting') return saved;
     return {
       ...saved,

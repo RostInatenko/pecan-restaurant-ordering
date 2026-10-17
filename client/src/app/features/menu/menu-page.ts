@@ -103,7 +103,12 @@ export class MenuPage {
         width: '420px',
       })
       .afterClosed()
-      .pipe(filter((result): result is AddToCartResult => result !== undefined))
+      // Cancel closes with an empty string (`mat-dialog-close` without a value), Esc with undefined.
+      .pipe(
+        filter(
+          (result): result is AddToCartResult => typeof result === 'object' && result !== null,
+        ),
+      )
       .subscribe(({ quantity, unitPrice }) =>
         this.store.dispatch(CartActions.itemAdded({ item, quantity, unitPrice })),
       );

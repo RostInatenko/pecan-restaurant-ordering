@@ -36,6 +36,26 @@ describe('cart storage', () => {
     expect(loadCart(storage).checkout).toMatchObject({ status: 'failed', idempotencyKey: 'key-1' });
   });
 
+  it('drops saved lines that could never be ordered', () => {
+    const storage = memoryStorage();
+    const good = {
+      key: 'a:500',
+      itemId: 'a',
+      name: 'A',
+      unitPrice: 500,
+      quantity: 2,
+      openPrice: false,
+    };
+    storage.setItem(
+      'pecan.cart.v1',
+      JSON.stringify({
+        ...initialCartState,
+        lines: [good, { ...good, key: 'b:x', itemId: 'b', quantity: null }, null],
+      }),
+    );
+    expect(loadCart(storage).lines).toEqual([good]);
+  });
+
   it('falls back to an empty cart when the stored data is broken', () => {
     const storage = memoryStorage();
     storage.setItem('pecan.cart.v1', '{not json');

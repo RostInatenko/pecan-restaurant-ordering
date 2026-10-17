@@ -3,7 +3,14 @@ import { createFeature, createReducer, createSelector, on } from '@ngrx/store';
 import type { AppError } from '../../core/http/app-error';
 import { menuFeature } from '../menu/menu.feature';
 import { CartActions, CheckoutActions } from './cart.actions';
-import { applyChanges, clampQuantity, detectChanges, lineKey, mergeLines } from './cart.logic';
+import {
+  applyChanges,
+  clampQuantity,
+  detectChanges,
+  isValidLine,
+  lineKey,
+  mergeLines,
+} from './cart.logic';
 import type { CartLine } from './cart.logic';
 
 export type CheckoutStatus = 'idle' | 'reviewing' | 'submitting' | 'failed';
@@ -62,6 +69,7 @@ export const cartFeature = createFeature({
         quantity: clampQuantity(quantity),
         openPrice: item.openPrice,
       };
+      if (!isValidLine(line)) return state;
       return changeCart(state, { lines: mergeLines([...state.lines, line]) });
     }),
     on(CartActions.quantityChanged, (state, { lineKey: key, quantity }): CartState => {

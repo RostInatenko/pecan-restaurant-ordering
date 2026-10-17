@@ -38,6 +38,15 @@ describe('cart reducer', () => {
     ]);
   });
 
+  it('ignores an add without a valid quantity or price', () => {
+    const state = reduce(
+      CartActions.itemAdded({ item: burger, quantity: NaN, unitPrice: 1000 }),
+      CartActions.itemAdded({ item: fish, quantity: 1, unitPrice: NaN }),
+      CartActions.itemAdded({ item: fish, quantity: 1, unitPrice: 12.5 }),
+    );
+    expect(state).toEqual(initialCartState);
+  });
+
   it('removes a line when its quantity drops to zero', () => {
     const added = reduce(CartActions.itemAdded({ item: burger, quantity: 1, unitPrice: 1000 }));
     const state = cartFeature.reducer(
