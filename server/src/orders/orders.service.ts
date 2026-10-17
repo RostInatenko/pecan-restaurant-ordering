@@ -118,6 +118,8 @@ export class OrdersService implements OnModuleDestroy {
         changes.push({ kind: 'removed', itemId });
       } else if (!item.available) {
         changes.push({ kind: 'unavailable', itemId, name: item.name });
+      } else if (item.price === null && unitPrice < 1) {
+        throw new ApiException('VALIDATION', `Enter a price for "${item.name}"`);
       } else if (item.price !== null && item.price !== unitPrice) {
         changes.push({
           kind: 'priceChanged',

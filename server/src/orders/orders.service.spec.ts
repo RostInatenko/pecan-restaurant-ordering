@@ -105,6 +105,15 @@ describe('OrdersService', () => {
       expect(order).toMatchObject({ subtotal: 3750, discount: 500, total: 3250 });
     });
 
+    it('requires a price for an open-price item', () => {
+      expect(() =>
+        orders.place(
+          'key-00000001',
+          orderOf({ lines: [{ itemId: open.id, quantity: 1, unitPrice: 0 }] }),
+        ),
+      ).toThrow(expect.objectContaining({ status: 400 }));
+    });
+
     it('rejects a discount larger than the subtotal', () => {
       expect(() => orders.place('key-00000001', orderOf({ discount: 1_000_000 }))).toThrow(
         expect.objectContaining({ status: 400 }),
