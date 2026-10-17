@@ -69,12 +69,25 @@ describe('cart reducer', () => {
       expect(state.checkout).toMatchObject({ status: 'failed', idempotencyKey: 'key-1' });
     });
 
-    it('drops the key when the cart changes after a failure', () => {
+    it('locks the cart while a network failure leaves the outcome unknown', () => {
       const failed = cartFeature.reducer(
         submitting,
         CheckoutActions.orderFailed({ error: networkError }),
       );
       const state = cartFeature.reducer(failed, CartActions.discountChanged({ discount: 100 }));
+      expect(state).toBe(failed);
+      expect(cartFeature.selectCartLocked.projector(state.checkout)).toBe(true);
+    });
+
+    it('allows edits, and drops the key, after a failure the server definitely rejected', () => {
+      const rejected = cartFeature.reducer(
+        submitting,
+        CheckoutActions.orderFailed({
+          error: { kind: 'validation', status: 400, code: 'VALIDATION', message: 'invalid' },
+        }),
+      );
+      const state = cartFeature.reducer(rejected, CartActions.discountChanged({ discount: 100 }));
+      expect(state.discount).toBe(100);
       expect(state.checkout).toMatchObject({ status: 'idle', idempotencyKey: null });
     });
 

@@ -31,7 +31,7 @@
             mat-icon-button
             type="button"
             [attr.aria-label]="'Decrease ' + line.name"
-            [disabled]="busy()"
+            [disabled]="locked()"
             (click)="setQuantity(line, line.quantity - 1)"
           >
             <mat-icon>remove</mat-icon>
@@ -41,7 +41,7 @@
             mat-icon-button
             type="button"
             [attr.aria-label]="'Increase ' + line.name"
-            [disabled]="busy() || line.quantity >= maxQuantity"
+            [disabled]="locked() || line.quantity >= maxQuantity"
             (click)="setQuantity(line, line.quantity + 1)"
           >
             <mat-icon>add</mat-icon>
@@ -53,7 +53,7 @@
           type="button"
           class="remove"
           [attr.aria-label]="'Remove ' + line.name"
-          [disabled]="busy()"
+          [disabled]="locked()"
           (click)="remove(line)"
         >
           <mat-icon>close</mat-icon>
@@ -71,7 +71,7 @@
       inputmode="decimal"
       autocomplete="off"
       [value]="discountText()"
-      [disabled]="busy()"
+      [disabled]="locked()"
       (change)="applyDiscount(discountInput.value)"
     />
     @if (discountInvalid()) {
@@ -92,7 +92,7 @@
     <dd class="total">{{ total() | money }}</dd>
   </dl>
 
-  @if (liveChanges().length > 0) {
+  @if (liveChanges().length > 0 && !failed()) {
     <p class="notice">
       Some items changed since you added them. You'll review the changes before the order is placed.
     </p>
@@ -101,7 +101,12 @@
   @if (failed()) {
     <p class="error" role="alert">
       {{ checkout().error?.message }}
-      <span>Retrying won't place the order twice.</span>
+      @if (locked()) {
+        <span>
+          We can't tell yet whether the order went through, so the cart is locked. Retry to find
+          out; it won't be placed twice.
+        </span>
+      }
     </p>
   }
 

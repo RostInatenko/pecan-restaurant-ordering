@@ -31,9 +31,21 @@ const idleCheckout: CheckoutState = {
 
 export const initialCartState: CartState = { lines: [], discount: 0, checkout: idleCheckout };
 
+/**
+ * After a network error or a 5xx the server may have created the order and only the response was
+ * lost. Until a retry with the same key settles it, the cart must not change: an edit would drop
+ * the key and the next attempt could place a second order.
+ */
+export function isOutcomeUnknown(checkout: CheckoutState): boolean {
+  return (
+    checkout.status === 'failed' &&
+    (checkout.error?.kind === 'network' || checkout.error?.kind === 'server')
+  );
+}
+
 /** Any change to the cart contents starts a new checkout attempt, so it also drops the key. */
 function changeCart(state: CartState, update: Partial<Omit<CartState, 'checkout'>>): CartState {
-  if (state.checkout.status === 'submitting') return state;
+  if (state.checkout.status === 'submitting' || isOutcomeUnknown(state.checkout)) return state;
   return { ...state, ...update, checkout: idleCheckout };
 }
 
@@ -99,7 +111,11 @@ export const cartFeature = createFeature({
       },
     })),
   ),
-  extraSelectors: ({ selectLines, selectDiscount }) => {
+  extraSelectors: ({ selectLines, selectDiscount, selectCheckout }) => {
+    const selectCartLocked = createSelector(
+      selectCheckout,
+      (checkout) => checkout.status === 'submitting' || isOutcomeUnknown(checkout),
+    );
     const selectSubtotal = createSelector(selectLines, (lines) =>
       lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
     );
@@ -135,6 +151,7 @@ export const cartFeature = createFeature({
       }),
     );
     return {
+      selectCartLocked,
       selectSubtotal,
       selectAppliedDiscount,
       selectTotal,

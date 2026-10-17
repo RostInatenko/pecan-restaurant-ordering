@@ -21,7 +21,11 @@ export class CheckoutEffects {
   private readonly router = inject(Router);
   private readonly notifier = inject(Notifier);
 
-  /** Review first if the live menu already shows changes; otherwise submit, reusing the key on a retry. */
+  /**
+   * A retry of a failed attempt goes straight back to the server with the same key: the order may
+   * already exist, and only the server can tell (it replays it, or answers 409 if the menu changed).
+   * A new attempt is reviewed first if the live menu already shows changes.
+   */
   readonly confirm$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(CheckoutActions.confirmed),
@@ -31,13 +35,14 @@ export class CheckoutEffects {
         this.store.select(cartFeature.selectLiveChanges),
       ]),
       filter(([, checkout, lines]) => checkout.status !== 'submitting' && lines.length > 0),
-      map(([, checkout, , changes]) =>
-        changes.length > 0
+      map(([, checkout, , changes]) => {
+        if (checkout.status === 'failed' && checkout.idempotencyKey) {
+          return CheckoutActions.submitStarted({ idempotencyKey: checkout.idempotencyKey });
+        }
+        return changes.length > 0
           ? CheckoutActions.reviewRequired({ changes })
-          : CheckoutActions.submitStarted({
-              idempotencyKey: checkout.idempotencyKey ?? createIdempotencyKey(),
-            }),
-      ),
+          : CheckoutActions.submitStarted({ idempotencyKey: createIdempotencyKey() });
+      }),
     );
   });
 

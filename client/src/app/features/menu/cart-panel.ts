@@ -45,6 +45,7 @@ export class CartPanel {
   protected readonly liveChanges = this.store.selectSignal(cartFeature.selectLiveChanges);
   protected readonly changesByItem = this.store.selectSignal(cartFeature.selectChangesByItem);
 
+  protected readonly locked = this.store.selectSignal(cartFeature.selectCartLocked);
   protected readonly busy = computed(() => this.checkout().status === 'submitting');
   protected readonly failed = computed(() => this.checkout().status === 'failed');
   protected readonly discountText = computed(() =>

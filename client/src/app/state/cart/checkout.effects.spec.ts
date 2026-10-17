@@ -108,6 +108,19 @@ describe('CheckoutEffects', () => {
       expect(emitted).toEqual([CheckoutActions.submitStarted({ idempotencyKey: 'key-1' })]);
     });
 
+    it('retries with the same key even if the menu changed meanwhile: the order may exist', () => {
+      store.overrideSelector(cartFeature.selectCheckout, {
+        ...idle,
+        status: 'failed',
+        idempotencyKey: 'key-1',
+      });
+      store.overrideSelector(cartFeature.selectLiveChanges, [priceChange]);
+      store.refreshState();
+      const emitted = collect('confirm$');
+      actions$.next(CheckoutActions.confirmed());
+      expect(emitted).toEqual([CheckoutActions.submitStarted({ idempotencyKey: 'key-1' })]);
+    });
+
     it('does nothing while an order is already being submitted', () => {
       store.overrideSelector(cartFeature.selectCheckout, {
         ...idle,
