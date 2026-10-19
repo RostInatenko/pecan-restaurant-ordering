@@ -4,7 +4,14 @@ import {
   CdkVirtualScrollViewport,
 } from '@angular/cdk/scrolling';
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  untracked,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatChipListbox, MatChipOption } from '@angular/material/chips';
@@ -82,6 +89,10 @@ export class MenuPage {
       const { status, changes } = this.checkout();
       if (status === 'reviewing' && !this.reviewOpen) untracked(() => this.openReview(changes));
     });
+
+    // Dialogs only close on history back/forward, not on router navigation such as the redirect
+    // to Orders after checkout, which would leave the mobile cart dialog open over the next page.
+    inject(DestroyRef).onDestroy(() => this.dialog.closeAll());
   }
 
   protected onSearch(query: string): void {
