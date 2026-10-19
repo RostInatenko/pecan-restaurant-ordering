@@ -171,7 +171,8 @@ messages:
 - reconnect forever with **exponential backoff + jitter** (1 s, 2 s, 4 s … capped at 30 s);
 - **heartbeat**: the server pings every 15 s, and 35 s of silence counts as a dead connection
   (browsers hide protocol-level pings, so the app sends its own);
-- reconnect **immediately** when the browser fires `online`;
+- reconnect **immediately** when the browser fires `online` (or, if the socket survived a short
+  blip, mark the connection live again);
 - connection status lives in the store and drives the toolbar indicator and a fixed bottom banner,
   which never shifts the layout.
 

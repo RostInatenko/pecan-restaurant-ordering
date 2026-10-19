@@ -9,6 +9,7 @@ export const RealtimeActions = createActionGroup({
     Opened: emptyProps(),
     Closed: props<{ retryInMs: number }>(),
     'Browser Offline': emptyProps(),
+    'Connection Resumed': emptyProps(),
     'Snapshot Received': props<{ menu: MenuSnapshot; orders: Order[] }>(),
     'Category Upserted': props<{ category: Category }>(),
     'Category Deleted': props<{ id: string }>(),

@@ -30,6 +30,8 @@ function toAction(event: RealtimeEvent): Action | null {
       return RealtimeActions.closed({ retryInMs: event.retryInMs });
     case 'offline':
       return RealtimeActions.browserOffline();
+    case 'resumed':
+      return RealtimeActions.connectionResumed();
     case 'message':
       return messageToAction(event.message);
   }

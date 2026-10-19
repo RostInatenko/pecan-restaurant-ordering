@@ -33,4 +33,13 @@ describe('connection feature', () => {
     );
     expect(state).toMatchObject({ status: 'offline', retryInMs: 4000 });
   });
+
+  it('goes back online when the browser recovers and the socket survived', () => {
+    const state = reduce(
+      RealtimeActions.opened(),
+      RealtimeActions.browserOffline(),
+      RealtimeActions.connectionResumed(),
+    );
+    expect(state.status).toBe('online');
+  });
 });

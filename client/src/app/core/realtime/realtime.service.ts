@@ -5,6 +5,7 @@ import {
   Subject,
   concatWith,
   defer,
+  filter,
   fromEvent,
   map,
   merge,
@@ -24,7 +25,8 @@ export type RealtimeEvent =
   | { type: 'open' }
   | { type: 'message'; message: ServerMessage }
   | { type: 'closed'; retryInMs: number }
-  | { type: 'offline' };
+  | { type: 'offline' }
+  | { type: 'resumed' };
 
 /** The server pings every 15 s; this much silence means the connection is dead. */
 export const HEARTBEAT_TIMEOUT_MS = 35_000;
@@ -60,6 +62,7 @@ export class RealtimeService {
     return defer(() => {
       const lifecycle = new Subject<RealtimeEvent>();
       let attempt = 0;
+      let socketOpen = false;
 
       const messages = defer(() => {
         lifecycle.next({ type: 'connecting', attempt });
@@ -68,6 +71,7 @@ export class RealtimeService {
           openObserver: {
             next: () => {
               attempt = 0;
+              socketOpen = true;
               lifecycle.next({ type: 'open' });
             },
           },
@@ -78,6 +82,7 @@ export class RealtimeService {
         concatWith(throwError(() => new Error('WebSocket closed'))),
         retry({
           delay: () => {
+            socketOpen = false;
             const retryInMs = backoffDelay(attempt);
             attempt += 1;
             lifecycle.next({ type: 'closed', retryInMs });
@@ -91,7 +96,13 @@ export class RealtimeService {
         map((): RealtimeEvent => ({ type: 'offline' })),
       );
 
-      return merge(lifecycle, offline, messages);
+      // A short network blip can leave the socket alive, so "offline" must not outlast it.
+      const resumed = fromEvent(this.window, 'online').pipe(
+        filter(() => socketOpen),
+        map((): RealtimeEvent => ({ type: 'resumed' })),
+      );
+
+      return merge(lifecycle, offline, resumed, messages);
     });
   }
 }

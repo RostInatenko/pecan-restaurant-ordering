@@ -38,5 +38,9 @@ export const connectionFeature = createFeature({
       ...state,
       status: 'offline',
     })),
+    on(RealtimeActions.connectionResumed, (state): ConnectionState => ({
+      ...state,
+      status: state.status === 'offline' ? 'online' : state.status,
+    })),
   ),
 });

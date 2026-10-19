@@ -119,4 +119,15 @@ describe('RealtimeService', () => {
     expect(sockets).toHaveLength(2);
     subscription.unsubscribe();
   });
+
+  it('reports a surviving socket as live again when the browser comes back online', () => {
+    const { sockets, events, open, subscription } = setup();
+    open(0);
+    window.dispatchEvent(new Event('offline'));
+    window.dispatchEvent(new Event('online'));
+
+    expect(events.slice(-2)).toEqual([{ type: 'offline' }, { type: 'resumed' }]);
+    expect(sockets).toHaveLength(1);
+    subscription.unsubscribe();
+  });
 });
